@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h2>Firebase Web Push Notification Example</h2>
+
+<p id="token"></p>
+
+<button onclick="SubscribeUser()">Subscribe to notifications</button>
+<br><br>
+<form>
+    Token: <br>
+    <textarea type="text" id="user_token" placeholder="Enter user token" style="width: 500px; height: 60px;"></textarea>
+    <br>
+    Title: <br>
+    <textarea type="text" id="title" placeholder="Title" style="width: 500px; height: 60px;"></textarea> <br>
+    Msg: <br>
+    <textarea type="text" id="msg" placeholder="Msg" style="width: 500px; height: 60px;"></textarea> <br>
+    <button onClick="sendNotification()" type="button" style="width: 500px; height: 40px;">Send</button>
+</form>
+
+<script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-messaging.js"></script>
+
+<script>
+    var vapidKey = "BMqb7j3po6KvnwAsRo0PUoHV5Kg2oUWK9V_5QeZK1f0SqEBNZM8q_JHHIYMomcL1dS2SkLGiljx_gMCP6EZX1L4";
+    var firebaseConfig = {
+        apiKey: "AIzaSyC4K3c96UVpJdDo9omp-j8-oNKyEguUfGs",
+        authDomain: "auth-3b4d4.firebaseapp.com",
+        projectId: "auth-3b4d4",
+        storageBucket: "auth-3b4d4.appspot.com",
+        messagingSenderId: "129957339703",
+        appId: "1:129957339703:web:791f7f21eab53545df55b2",
+        measurementId: "G-7JGR67YPS8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    function SubscribeUser() {
+        Notification.requestPermission().then(permission => {
+            // console.log(permission);
+            if (permission == "granted") {
+                messaging.getToken({vapidKey: vapidKey}).then(currentToken => {
+                    console.log(currentToken);
+                    document.querySelector("#token").innerHTML = currentToken;
+                    document.querySelector("#user_token").value = currentToken;
+                });
+            }
+        });
+    }
+
+    function sendNotification() {
+        var token = document.querySelector("#user_token").value;
+        var title = document.querySelector("#title").value;
+        var msg = document.querySelector("#msg").value;
+
+        var body = {
+            to: token,
+            notification: {
+                title: title,
+                body: msg,
+                icon: "icon.png",
+                click_action: "https://www.crazysales.com.au",
+            }
+        };
+
+        console.log(body);
+
+        var options = {
+            method: "POST",
+            headers: new Headers({
+                Authorization: "key=AAAAHkIPojc:APA91bE6nmb4Pln3EBos0Vl-Y5Djaxj2WEsyTor6WQ5HlTY5j9oUZFKBOjWwUH-LbVXSBxYpezTj0-RE8sUtDeqI80wQrEhEWIbKc31aJz5_wxvU008SJq-bCQVJvZV3RUupRfjkKjbO",
+                "content-Type": "application/json"
+            }),
+            body: JSON.stringify(body),
+        };
+
+        fetch("https://fcm.googleapis.com/fcm/send", options).then(res => {
+            console.log(res);
+        }).catch(e => {
+            console.log(e);
+        })
+    }
+    messaging.onMessage(function (payload) {
+        console.log(payload);
+        const notificationOption={
+            body:payload.notification.body,
+            icon:payload.notification.icon
+        };
+
+        if(Notification.permission==="granted"){
+            var notification=new Notification(payload.notification.title,notificationOption);
+
+            notification.onclick=function (ev) {
+                ev.preventDefault();
+                window.open(payload.notification.click_action,'_blank');
+                notification.close();
+            }
+        }
+
+    });
+
+    /*
+    function IntitalizeFireBaseMessaging() {
+        messaging
+            .requestPermission()
+            .then(function () {
+                console.log("Notification Permission");
+                return messaging.getToken();
+            })
+            .then(function (token) {
+                console.log("Token : "+token);
+                document.getElementById("token").innerHTML=token;
+            })
+            .catch(function (reason) {
+                console.log(reason);
+            });
+    }
+
+    messaging.onMessage(function (payload) {
+        console.log(payload);
+        const notificationOption={
+            body:payload.notification.body,
+            icon:payload.notification.icon
+        };
+
+        if(Notification.permission==="granted"){
+            var notification=new Notification(payload.notification.title,notificationOption);
+
+            notification.onclick=function (ev) {
+                ev.preventDefault();
+                window.open(payload.notification.click_action,'_blank');
+                notification.close();
+            }
+        }
+
+    });
+
+    messaging.onTokenRefresh(function () {
+        messaging.getToken()
+            .then(function (newtoken) {
+                console.log("New Token : "+ newtoken);
+            })
+            .catch(function (reason) {
+                console.log(reason);
+            })
+    })
+    IntitalizeFireBaseMessaging();
+    */
+</script>
+</body>
+</html>
